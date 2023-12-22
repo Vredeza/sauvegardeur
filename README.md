@@ -15,11 +15,10 @@ Il s’agit d’une application client-serveur en réseau, qui doit satisfaire a
 
 ### Déploiement du serveur
 
-Le serveur est prêt à être déployé. Pour cela, peut entrer les commandes suivantes : 
+Le serveur est prêt à être déployé avec `docker compose`. Pour cela, peut entrer la commande suivante : 
 
 ```shell
-docker build . -t serveur
-docker run -p 443:555 serveur
+docker compose up -d
 ```
 
 Il est évidemment possible de choisir un autre port pour l'hôte, remplacez selon vos besoins.
