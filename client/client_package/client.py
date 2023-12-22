@@ -166,7 +166,7 @@ def get_full_id(incomplete_id, server, port):
         directories = data.get('directories', [])
 
         # Stocker les correspondances potentielles trouvées
-        matches = [directory['name'] for directory in directories if incomplete_id in directory['name']]
+        matches = [directory['id'] for directory in directories if incomplete_id in directory['id']]
 
         # Filtrer les correspondances pour obtenir l'ID complet
         full_ids = [match for match in matches if match.startswith(incomplete_id)]

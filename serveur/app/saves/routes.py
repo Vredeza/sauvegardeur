@@ -46,7 +46,8 @@ def get_save_by_id(id):
                     zipf.write(file_path, arcname=os.path.relpath(file_path, save_folder_path))
 
         # Envoyer le fichier ZIP en réponse à la requête GET
-        return send_file(temp_zip_path, as_attachment=True)
+        print(f"/app/{temp_zip_path}")
+        return send_file(f"/app/{temp_zip_path}", as_attachment=True)
     else:
         return 'Not Found', 404  # Le dossier n'existe pas, renvoie un code 404
 
