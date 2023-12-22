@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  serveur:
+    build: .
+    ports:
+      - "443:555"
+    volumes:
+      - ./stored_files:/app/stored_files
