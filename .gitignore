@@ -3,6 +3,9 @@
 *.backup
 
 ROOT/*
+
 client/build/*
 client/dist/*
 client/Sauvegardeur.egg-info/*
+
+serveur/stored_files/*
