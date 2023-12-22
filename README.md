@@ -19,7 +19,7 @@ Le serveur est prêt à être déployé. Pour cela, peut entrer les commandes su
 
 ```shell
 docker build . -t serveur
-docker run -p 80:555 serveur
+docker run -p 443:555 serveur
 ```
 
 Il est évidemment possible de choisir un autre port pour l'hôte, remplacez selon vos besoins.
@@ -70,7 +70,7 @@ python3 client.py
 
 On peut aussi utiliser le gestionnaire de paquets *pip* afin d'installer l'application. Le script [`build.sh`](./client/build.sh) s'en occupe.
 
-Ce client propose différentes options. Pour chacune d'entre elles, on peut préciser l'adresse et le numéro de port du serveur; par défaut, on considère qu'on envoie au serveur `localhost:80`. De la mème manière, le `-h` ou `--help` donnera des indications sur l'utilisation de l'option. 
+Ce client propose différentes options. Pour chacune d'entre elles, on peut préciser l'adresse et le numéro de port du serveur; par défaut, on considère qu'on envoie au serveur `localhost:443`. De la mème manière, le `-h` ou `--help` donnera des indications sur l'utilisation de l'option. 
 
 #### `save`
 

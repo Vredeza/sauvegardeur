@@ -2,8 +2,9 @@ import requests
 import argparse
 import os
 import zipfile
+import urllib3
 
-
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def get_file_extensions(file_path):
     """
 
@@ -51,11 +52,11 @@ def send_zip_to_server(zip_file_path, server_name, server_port):
     :param server_name: L'addresse du serveur.
     :param server_port: Le port sur lequel envoyer fichier.
     """
-    server_url = f'http://{server_name}:{server_port}/upload'
+    server_url = f'https://{server_name}:{server_port}/upload'
 
     with open(zip_file_path, 'rb') as file:
         files = {'file': file}
-        response = requests.post(server_url, files=files)
+        response = requests.post(server_url, files=files, verify=False)
 
         if response.status_code == 200:
             print("Fichier envoyé avec succès au serveur !")
@@ -64,6 +65,10 @@ def send_zip_to_server(zip_file_path, server_name, server_port):
 
 
 def save_action(args):
+    """
+    Gère la sauvegarde. Compresse les fichiers dans une archive et les envoie au serveur.
+    :param args: Les arguments passés directement à la commande.
+    """
     # Vérification du dossier racine
     if not os.path.isdir(os.path.abspath(args.dossier)):
         print(f"Erreur : Le chemin spécifié pour le dossier '{args.dossier}' n'existe pas ou n'est pas un dossier "
@@ -86,8 +91,12 @@ def save_action(args):
 
 
 def ls_action(args):
-    url = f'http://{args.adresse}:{args.port}/saves'
-    response = requests.get(url)
+    """
+    Récupère et affiche les informations sur les sauvegardes présentes sur le serveur (id, date, taille).
+    :param args: Les arguments passés directement à la commande.
+    """
+    url = f'https://{args.adresse}:{args.port}/saves'
+    response = requests.get(url, verify=False)
 
     if response.status_code == 200:
         data = response.json()
@@ -97,24 +106,28 @@ def ls_action(args):
         print("ID\t\t\t\t\tDate\t\t\tSize")
         print("----------------------------------------------------------------------")
         for directory in directories:
-            name = directory.get('name', '')
+            id = directory.get('id', '')
             size = directory.get('size', 0)
             date = directory.get('creation_time', '')
-            print(f"{name}\t{date}\t{size}")
+            print(f"{id}\t{date}\t{size}")
     else:
         print("Erreur lors de la récupération des informations de sauvegarde.")
 
 
 def restore_action(args):
+    """
+    Restaure une sauvegarde en écrasant les fichiers déjà présents.
+    :param args: Les arguments passés directement à la commande.
+    """
     full_id = get_full_id(args.sauvegarde, args.adresse, args.port)
     if full_id == '':
         print("Impossible de faire correspondre l'identifiant de la sauvegarde.")
         exit(1)
 
-    url = f'http://{args.adresse}:{args.port}/save/{full_id}'
+    url = f'https://{args.adresse}:{args.port}/save/{full_id}'
 
     # Effectuer la requête GET pour obtenir le fichier ZIP
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
 
     if response.status_code == 200:
         # Chemin où sauvegarder le fichier ZIP téléchargé
@@ -137,9 +150,16 @@ def restore_action(args):
 
 
 def get_full_id(incomplete_id, server, port):
-    url = f'http://{server}:{port}/saves'
+    """
+    Permet de reconstituer un identifiant complet à partir du début de celui-ci.
+    :param incomplete_id: Le début de l'identifiant de la sauvegarde.
+    :param server: L'adresse du serveur.
+    :param port: Le port du serveur.
+    :return: L'identifiant complet s'il a été trouvé, une chaîne de characètre vide sinon.
+    """
+    url = f'https://{server}:{port}/saves'
 
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
 
     if response.status_code == 200:
         data = response.json()
@@ -161,8 +181,8 @@ def get_full_id(incomplete_id, server, port):
 
 
 def tree_action(args):
-    url = f'http://{args.adresse}:{args.port}/save/{get_full_id(args.id, args.adresse, args.port)}/tree'
-    response = requests.get(url)
+    url = f'https://{args.adresse}:{args.port}/save/{get_full_id(args.id, args.adresse, args.port)}/tree'
+    response = requests.get(url, verify=False)
 
     if response.status_code == 200:
         print(response.content.decode('utf-8'))
@@ -183,12 +203,12 @@ def parse_arguments():
     save_parser.add_argument('-e', '--fichier',
                              help="Chemin du fichier contenant, si nécessaire, les extensions à envoyer.")
     save_parser.add_argument('-s', '--adresse', default='localhost', help="Adresse IP du serveur (défaut : localhost)")
-    save_parser.add_argument('-p', '--port', type=int, default=80, help="Numéro de port du serveur (défaut : 80)")
+    save_parser.add_argument('-p', '--port', type=int, default=443, help="Numéro de port du serveur (défaut : 443)")
 
     # Commande 'ls'
     ls_parser = subparsers.add_parser('ls', help='Liste les sauvegardes disponibles')
     ls_parser.add_argument('-s', '--adresse', default='localhost', help="Adresse IP du serveur (défaut : localhost)")
-    ls_parser.add_argument('-p', '--port', type=int, default=80, help="Numéro de port du serveur (défaut : 80)")
+    ls_parser.add_argument('-p', '--port', type=int, default=443, help="Numéro de port du serveur (défaut : 443)")
 
     # Commande 'restore'
     restore_parser = subparsers.add_parser('restore', help='Restaure une sauvegarde')
@@ -196,12 +216,12 @@ def parse_arguments():
     restore_parser.add_argument('-d', '--destination', help="Chemin de destination pour la restauration", required=True)
     restore_parser.add_argument('-s', '--adresse', default='localhost',
                                 help="Adresse IP du serveur (défaut : localhost)")
-    restore_parser.add_argument('-p', '--port', type=int, default=80, help="Numéro de port du serveur (défaut : 80)")
+    restore_parser.add_argument('-p', '--port', type=int, default=443, help="Numéro de port du serveur (défaut : 443)")
 
     tree_parser = subparsers.add_parser('tree', help="Affiche l'arborescence d'une sauvegarde.")
     tree_parser.add_argument('id', help="L'id de la sauvegarde à visualiser.")
     tree_parser.add_argument('-s', '--adresse', default='localhost', help="Adresse IP du serveur (défaut : localhost)")
-    tree_parser.add_argument('-p', '--port', type=int, default=80, help="Numéro de port du serveur (défaut : 80)")
+    tree_parser.add_argument('-p', '--port', type=int, default=443, help="Numéro de port du serveur (défaut : 443)")
 
     return parser.parse_args()
 
